@@ -1,9 +1,22 @@
 server:
   port: 8089
 
+# mybatis
+spring:
+  datasource:
+    username: root
+    password: root
+    url: jdbc:mysql://localhost:3306/hw?serverTimezone=UTC&useUnicode=true&characterEncoding=utf-8
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
 redis:
   host: 127.0.0.1
   port: 6379
   password:
   #连接超时时间
   timeout: 5000
+
+# 整合mybatis
+mybatis:
+  type-aliases-package: com.pat.jp.hellotest.entity
+  mapper-locations: classpath:mybatis/mapper/*.xml
