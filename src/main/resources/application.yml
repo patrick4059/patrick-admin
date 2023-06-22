@@ -1,0 +1,9 @@
+server:
+  port: 8089
+
+redis:
+  host: 127.0.0.1
+  port: 6379
+  password:
+  #连接超时时间
+  timeout: 5000
