@@ -13,10 +13,10 @@ redis:
   host: 127.0.0.1
   port: 6379
   password:
-  #连接超时时间
+  #杩炴帴瓒呮椂鏃堕棿
   timeout: 5000
 
-# 整合mybatis
+# 鏁村悎mybatis
 mybatis:
   type-aliases-package: com.pat.jp.hellotest.entity
   mapper-locations: classpath:mybatis/mapper/*.xml
