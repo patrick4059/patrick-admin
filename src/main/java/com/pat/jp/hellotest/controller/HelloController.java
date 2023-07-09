@@ -15,6 +15,7 @@ import java.util.List;
  **/
 
 @RestController
+@RequestMapping("/auth")
 //@CrossOrigin(methods = RequestMethod.POST, allowCredentials = "true") // 后端解决跨域问题
 public class HelloController {
 
