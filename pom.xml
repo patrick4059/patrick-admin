@@ -19,10 +19,10 @@
     </properties>
     <dependencies>
         <!--Spring boot 核心-->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-thymeleaf</artifactId>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-thymeleaf</artifactId>-->
+<!--        </dependency>-->
 
         <!--Spring boot Web容器-->
         <dependency>
@@ -30,11 +30,17 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!--Spring boot 安全框架-->
+        <!--Spring boot 热部署-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-security</artifactId>
+            <artifactId>spring-boot-devtools</artifactId>
         </dependency>
+
+        <!--Spring boot 安全框架-->
+<!--        <dependency>-->
+<!--            <groupId>org.springframework.boot</groupId>-->
+<!--            <artifactId>spring-boot-starter-security</artifactId>-->
+<!--        </dependency>-->
 
         <!--Mysql依赖包-->
         <dependency>

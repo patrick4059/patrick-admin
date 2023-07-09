@@ -2,8 +2,8 @@ package com.pat.jp.hellotest.controller;
 
 import com.pat.jp.hellotest.entity.User;
 import com.pat.jp.hellotest.service.Hello;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -15,17 +15,18 @@ import java.util.List;
  **/
 
 @RestController
+//@CrossOrigin(methods = RequestMethod.POST, allowCredentials = "true") // 后端解决跨域问题
 public class HelloController {
 
     @Resource
     Hello hello;
 
-    @RequestMapping(value = "/hello")
+    @RequestMapping(value = "hello")
     public String hello() {
         return "hello world";
     }
 
-    @RequestMapping("/queryUsers")
+    @RequestMapping(value = "queryUsers", method = {RequestMethod.POST})
     public List<User> queryList() {
         List<User> list = hello.queryUserList();
         for (User user : list) {
