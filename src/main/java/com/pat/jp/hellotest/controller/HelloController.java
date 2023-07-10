@@ -14,8 +14,8 @@ import java.util.List;
  * @time: 13:26
  **/
 
-@RestController
-@RequestMapping("/auth")
+//@RestController
+//@RequestMapping("/auth")
 //@CrossOrigin(methods = RequestMethod.POST, allowCredentials = "true") // 后端解决跨域问题
 public class HelloController {
 
@@ -25,6 +25,11 @@ public class HelloController {
     @RequestMapping(value = "hello")
     public String hello() {
         return "hello world";
+    }
+
+    @RequestMapping(value = "login")
+    public String login() {
+        return "hello world login";
     }
 
     @RequestMapping(value = "queryUsers", method = {RequestMethod.POST})
