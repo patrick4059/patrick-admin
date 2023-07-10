@@ -1,26 +1,40 @@
 package com.pat.jp.common.utils;
 
 
+import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.core.Cursor;
+import org.springframework.data.redis.core.RedisConnectionUtils;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.ScanOptions;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Component
+@SuppressWarnings({"unchecked", "all"})
 public final class RedisUtil {
-
+    private static final Logger log = LoggerFactory.getLogger(RedisUtil.class);
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
+    @Value("${jwt.online-key}")
+    private String onlineKey;
 
-    // =============================common============================
+    public RedisUtil(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
+
     /**
      * 指定缓存失效时间
+     *
      * @param key  键
      * @param time 时间(秒)
      */
@@ -37,7 +51,27 @@ public final class RedisUtil {
     }
 
     /**
+     * 指定缓存失效时间
+     *
+     * @param key      键
+     * @param time     时间(秒)
+     * @param timeUnit 单位
+     */
+    public boolean expire(String key, long time, TimeUnit timeUnit) {
+        try {
+            if (time > 0) {
+                redisTemplate.expire(key, time, timeUnit);
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return false;
+        }
+        return true;
+    }
+
+    /**
      * 根据key 获取过期时间
+     *
      * @param key 键 不能为null
      * @return 时间(秒) 返回0代表为永久有效
      */
@@ -45,9 +79,70 @@ public final class RedisUtil {
         return redisTemplate.getExpire(key, TimeUnit.SECONDS);
     }
 
+    /**
+     * 查找匹配key
+     *
+     * @param pattern key
+     * @return /
+     */
+    public List<String> scan(String pattern) {
+        ScanOptions options = ScanOptions.scanOptions().match(pattern).build();
+        RedisConnectionFactory factory = redisTemplate.getConnectionFactory();
+        RedisConnection rc = Objects.requireNonNull(factory).getConnection();
+        Cursor<byte[]> cursor = rc.scan(options);
+        List<String> result = new ArrayList<>();
+        while (cursor.hasNext()) {
+            result.add(new String(cursor.next()));
+        }
+        try {
+            RedisConnectionUtils.releaseConnection(rc, factory);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return result;
+    }
+
+    /**
+     * 分页查询 key
+     *
+     * @param patternKey key
+     * @param page       页码
+     * @param size       每页数目
+     * @return /
+     */
+    public List<String> findKeysForPage(String patternKey, int page, int size) {
+        ScanOptions options = ScanOptions.scanOptions().match(patternKey).build();
+        RedisConnectionFactory factory = redisTemplate.getConnectionFactory();
+        RedisConnection rc = Objects.requireNonNull(factory).getConnection();
+        Cursor<byte[]> cursor = rc.scan(options);
+        List<String> result = new ArrayList<>(size);
+        int tmpIndex = 0;
+        int fromIndex = page * size;
+        int toIndex = page * size + size;
+        while (cursor.hasNext()) {
+            if (tmpIndex >= fromIndex && tmpIndex < toIndex) {
+                result.add(new String(cursor.next()));
+                tmpIndex++;
+                continue;
+            }
+            // 获取到满足条件的数据后,就可以退出了
+            if (tmpIndex >= toIndex) {
+                break;
+            }
+            tmpIndex++;
+            cursor.next();
+        }
+        try {
+            RedisConnectionUtils.releaseConnection(rc, factory);
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+        return result;
+    }
 
     /**
      * 判断key是否存在
+     *
      * @param key 键
      * @return true 存在 false不存在
      */
@@ -55,7 +150,7 @@ public final class RedisUtil {
         try {
             return redisTemplate.hasKey(key);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
             return false;
         }
     }
@@ -63,6 +158,7 @@ public final class RedisUtil {
 
     /**
      * 删除缓存
+     *
      * @param key 可以传一个值 或多个
      */
     @SuppressWarnings("unchecked")
@@ -76,11 +172,38 @@ public final class RedisUtil {
         }
     }
 
+    /**
+     * 删除缓存
+     *
+     * @param key 可以传一个值 或多个
+     */
+//    public void del(String... keys) {
+//        if (keys != null && keys.length > 0) {
+//            if (keys.length == 1) {
+//                boolean result = redisTemplate.delete(keys[0]);
+//                log.debug("--------------------------------------------");
+//                log.debug(new StringBuilder("删除缓存：").append(keys[0]).append("，结果：").append(result).toString());
+//                log.debug("--------------------------------------------");
+//            } else {
+//                Set<Object> keySet = new HashSet<>();
+//                for (String key : keys) {
+//                    keySet.addAll(redisTemplate.keys(key));
+//                }
+//                long count = redisTemplate.delete(keySet);
+//                log.debug("--------------------------------------------");
+//                log.debug("成功删除缓存：" + keySet.toString());
+//                log.debug("缓存删除数量：" + count + "个");
+//                log.debug("--------------------------------------------");
+//            }
+//        }
+//    }
+
 
     // ============================String=============================
 
     /**
      * 普通缓存获取
+     *
      * @param key 键
      * @return 值
      */
@@ -89,7 +212,21 @@ public final class RedisUtil {
     }
 
     /**
+     * 批量获取
+     *
+     * @param keys
+     * @return
+     */
+    public List<Object> multiGet(List<String> keys) {
+        List list = redisTemplate.opsForValue().multiGet(Sets.newHashSet(keys));
+        List resultList = Lists.newArrayList();
+        Optional.ofNullable(list).ifPresent(e-> list.forEach(ele-> Optional.ofNullable(ele).ifPresent(resultList::add)));
+        return resultList;
+    }
+
+    /**
      * 普通缓存放入
+     *
      * @param key   键
      * @param value 值
      * @return true成功 false失败
@@ -100,7 +237,30 @@ public final class RedisUtil {
             redisTemplate.opsForValue().set(key, value);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
+            return false;
+        }
+    }
+
+    /**
+     * 普通缓存放入并设置时间
+     *
+     * @param key      键
+     * @param value    值
+     * @param time     时间
+     * @param timeUnit 类型
+     * @return true成功 false 失败
+     */
+    public boolean set(String key, Object value, long time, TimeUnit timeUnit) {
+        try {
+            if (time > 0) {
+                redisTemplate.opsForValue().set(key, value, time, timeUnit);
+            } else {
+                set(key, value);
+            }
+            return true;
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
             return false;
         }
     }
@@ -108,6 +268,7 @@ public final class RedisUtil {
 
     /**
      * 普通缓存放入并设置时间
+     *
      * @param key   键
      * @param value 值
      * @param time  时间(秒) time要大于0 如果time小于等于0 将设置无限期
@@ -131,6 +292,7 @@ public final class RedisUtil {
 
     /**
      * 递增
+     *
      * @param key   键
      * @param delta 要增加几(大于0)
      */
@@ -144,6 +306,7 @@ public final class RedisUtil {
 
     /**
      * 递减
+     *
      * @param key   键
      * @param delta 要减少几(小于0)
      */
@@ -159,6 +322,7 @@ public final class RedisUtil {
 
     /**
      * HashGet
+     *
      * @param key  键 不能为null
      * @param item 项 不能为null
      */
@@ -168,6 +332,7 @@ public final class RedisUtil {
 
     /**
      * 获取hashKey对应的所有键值
+     *
      * @param key 键
      * @return 对应的多个键值
      */
@@ -177,6 +342,7 @@ public final class RedisUtil {
 
     /**
      * HashSet
+     *
      * @param key 键
      * @param map 对应多个键值
      */
@@ -185,7 +351,7 @@ public final class RedisUtil {
             redisTemplate.opsForHash().putAll(key, map);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
             return false;
         }
     }
@@ -193,6 +359,7 @@ public final class RedisUtil {
 
     /**
      * HashSet 并设置时间
+     *
      * @param key  键
      * @param map  对应多个键值
      * @param time 时间(秒)
@@ -206,7 +373,7 @@ public final class RedisUtil {
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
             return false;
         }
     }
@@ -247,7 +414,7 @@ public final class RedisUtil {
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
             return false;
         }
     }
@@ -304,13 +471,14 @@ public final class RedisUtil {
 
     /**
      * 根据key获取Set中的所有值
+     *
      * @param key 键
      */
     public Set<Object> sGet(String key) {
         try {
             return redisTemplate.opsForSet().members(key);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage(), e);
             return null;
         }
     }
@@ -473,6 +641,7 @@ public final class RedisUtil {
 
     /**
      * 将list放入缓存
+     *
      * @param key   键
      * @param value 值
      * @param time  时间(秒)
