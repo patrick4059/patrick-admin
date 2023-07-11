@@ -3,7 +3,11 @@ package com.pat.jp.system.modules.security.rest;
 import cn.hutool.core.util.IdUtil;
 import com.pat.jp.common.annotation.rest.AnonymousGetMapping;
 import com.pat.jp.common.annotation.rest.AnonymousPostMapping;
+import com.pat.jp.common.config.RsaProperties;
+import com.pat.jp.common.exception.BadRequestException;
 import com.pat.jp.common.utils.RedisUtil;
+import com.pat.jp.common.utils.RsaUtils;
+import com.pat.jp.common.utils.StringUtils;
 import com.pat.jp.system.modules.security.config.bean.LoginCodeEnum;
 import com.pat.jp.system.modules.security.config.bean.LoginProperties;
 import com.pat.jp.system.modules.security.config.bean.SecurityProperties;
@@ -14,6 +18,10 @@ import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -38,12 +46,33 @@ import java.util.concurrent.TimeUnit;
 public class AuthorizationController {
     private final RedisUtil redisUtils;
     private final SecurityProperties properties;
+    private final AuthenticationManagerBuilder authenticationManagerBuilder;
     @Resource
     private LoginProperties loginProperties;
 
     @ApiOperation("登录授权")
     @AnonymousPostMapping(value = "/login")
-    public ResponseEntity<Object> login(@Validated @RequestBody AuthUserDto authUser, HttpServletRequest request) {
+    public ResponseEntity<Object> login(@Validated @RequestBody AuthUserDto authUser, HttpServletRequest request) throws Exception {
+        // 密码解密
+        String password = RsaUtils.decryptByPrivateKey(RsaProperties.privateKey, authUser.getPassword());
+        // 查询验证码
+        String code = (String) redisUtils.get(authUser.getUuid());
+        // 清除验证码
+        redisUtils.del(authUser.getUuid());
+        if (StringUtils.isBlank(code)) {
+            throw new BadRequestException("验证码不存在或已过期");
+        }
+        if (StringUtils.isBlank(authUser.getCode()) || !authUser.getCode().equalsIgnoreCase(code)) {
+            throw new BadRequestException("验证码错误");
+        }
+        // spring Security使用参照： https://blog.csdn.net/manqishizhizhu/article/details/124201084
+        UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(authUser.getUsername(), password);
+        Authentication authentication = authenticationManagerBuilder.getObject().authenticate(usernamePasswordAuthenticationToken);
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+
+
+
         Map<String, Object> authInfo = new HashMap<String, Object>(2) {{
             put("token", "12345");
             put("user", "88888");

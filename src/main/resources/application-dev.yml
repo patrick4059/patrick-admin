@@ -1,5 +1,11 @@
 # mybatis
 spring:
+  devtools:
+    restart:
+      enabled: true #设置开启热部署
+      additional-paths: src/main/java/com/pat/jp #重启目录
+  freemarker:
+    cache: false #页面不加载缓存，修改即生效
   datasource:
     username: root
     password: root
