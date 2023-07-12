@@ -1,4 +1,4 @@
-package com.pat.jp.common.config;
+package com.pat.jp.system.modules.security.config;
 
 import com.pat.jp.common.annotation.AnonymousAccess;
 import com.pat.jp.common.utils.RequestMethodEnum;
@@ -32,7 +32,7 @@ import java.util.*;
 @EnableWebSecurity
 @RequiredArgsConstructor
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
     private final ApplicationContext applicationContext;
 
     @Bean
