@@ -16,7 +16,22 @@ import java.util.Objects;
  **/
 @Data
 public class LoginProperties {
+
+    /**
+     * 账号单用户 登录
+     */
+    private boolean singleLogin = false;
+
     private LoginCode loginCode;
+
+    /**
+     * 用户登录信息缓存
+     */
+    private boolean cacheEnable;
+
+    public boolean isSingleLogin() {
+        return singleLogin;
+    }
 
     /**
      * 获取验证码生产类

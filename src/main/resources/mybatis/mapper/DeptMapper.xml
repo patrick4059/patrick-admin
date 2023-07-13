@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.pat.jp.system.modules.system.mapper.DeptMapper">
+    <select id="findByRoleId" parameterType="java.lang.Long" resultType="com.pat.jp.system.modules.system.domain.Dept">
+        select d.* from sys_dept d , sys_roles_depts r where d.dept_id = r.dept_id and r.role_id = #{roleId}
+    </select>
+
+    <select id="findByPid" parameterType="java.lang.Long" resultType="com.pat.jp.system.modules.system.domain.Dept">
+        select d.* from sys_dept d where d.pid = #{id}
+    </select>
+</mapper>
