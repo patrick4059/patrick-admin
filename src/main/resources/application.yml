@@ -15,7 +15,7 @@ spring:
 
 # 整合mybatis
 mybatis:
-  type-aliases-package: com.pat.jp.hellotest.entity
+  type-aliases-package: com.pat.jp.system.modules.system.domain # 配置类路径别名
   mapper-locations: classpath:mybatis/mapper/*.xml
 
 #密码加密传输，前端公钥加密，后端私钥解密

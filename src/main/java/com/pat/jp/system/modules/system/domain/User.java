@@ -26,14 +26,14 @@ public class User extends BaseEntity implements Serializable {
     @ApiModelProperty(value = "ID", hidden = true)
     private Long id;
 
-//    @ApiModelProperty(value = "用户角色")
-//    private Set<Role> roles;
-//
-//    @ApiModelProperty(value = "用户岗位")
-//    private Set<Job> jobs;
-//
-//    @ApiModelProperty(value = "用户部门")
-//    private Dept dept;
+    @ApiModelProperty(value = "用户角色")
+    private Set<Role> roles;
+
+    @ApiModelProperty(value = "用户岗位")
+    private Set<Job> jobs;
+
+    @ApiModelProperty(value = "用户部门")
+    private Dept dept;
 
     @NotBlank
     @ApiModelProperty(value = "用户名称")

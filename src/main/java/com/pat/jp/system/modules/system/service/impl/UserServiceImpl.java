@@ -19,22 +19,22 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 @CacheConfig(cacheNames = "user")
 public class UserServiceImpl implements UserService {
-    private final UserMapper userMapper;
-    private final UserStructMapper userStructMapper;
+	private final UserMapper userMapper;
+	private final UserStructMapper userStructMapper;
 
-    /**
-     * 根据用户名查询
-     *
-     * @param userName /
-     * @return /
-     */
-    @Override
-    public UserDto findByName(String userName) {
-        User user = userMapper.findByUsername(userName);
-        if (user == null) {
-            throw new EntityNotFoundException(User.class, "name", userName);
-        } else {
-            return userStructMapper.toDto(user);
-        }
-    }
+	/**
+	 * 根据用户名查询
+	 *
+	 * @param userName /
+	 * @return /
+	 */
+	@Override
+	public UserDto findByName(String userName) {
+		User user = userMapper.findByUsername(userName);
+		if (user == null) {
+			throw new EntityNotFoundException(User.class, "name", userName);
+		} else {
+			return userStructMapper.toDto(user);
+		}
+	}
 }

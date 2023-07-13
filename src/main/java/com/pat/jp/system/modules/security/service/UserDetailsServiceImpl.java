@@ -27,52 +27,52 @@ import java.util.concurrent.ConcurrentHashMap;
 @RequiredArgsConstructor
 @Service("userDetailsService")
 public class UserDetailsServiceImpl implements UserDetailsService {
-    private final LoginProperties loginProperties;
-    private final UserService userService;
-    private final DataService dataService;
-    private final RoleService roleService;
+	private final LoginProperties loginProperties;
+	private final UserService userService;
+	private final DataService dataService;
+	private final RoleService roleService;
 
-    /**
-     * 用户信息缓存
-     *
-     * @see {@link UserCacheClean}
-     */
-    static Map<String, JwtUserDto> userDtoCache = new ConcurrentHashMap<>();
+	/**
+	 * 用户信息缓存
+	 *
+	 * @see {@link UserCacheClean}
+	 */
+	static Map<String, JwtUserDto> userDtoCache = new ConcurrentHashMap<>();
 
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        boolean searchDb = true;
-        JwtUserDto jwtUserDto = null;
-        if (loginProperties.isCacheEnable() && userDtoCache.containsKey(username)) {
-            jwtUserDto = userDtoCache.get(username);
-            // 检查dataScope是否修改
-            List<Long> dataScopes = jwtUserDto.getDataScopes();
-            dataScopes.clear();
-            dataScopes.addAll(dataService.getDeptIds(jwtUserDto.getUser()));
-            searchDb = false;
-        }
-        if (searchDb) {
-            UserDto user;
-            try {
-                user = userService.findByName(username);
-            } catch (EntityNotFoundException e) {
-                // SpringSecurity会自动转换UsernameNotFoundException为BadCredentialsException
-                throw new UsernameNotFoundException("", e);
-            }
-            if (user == null) {
-                throw new UsernameNotFoundException("");
-            } else {
-                if (!user.getEnabled()) {
-                    throw new BadRequestException("账号未激活！");
-                }
-                jwtUserDto = new JwtUserDto(
-                        user,
-                        dataService.getDeptIds(user),
-                        roleService.mapToGrantedAuthorities(user)
-                );
-                userDtoCache.put(username, jwtUserDto);
-            }
-        }
-        return jwtUserDto;
-    }
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+		boolean searchDb = true;
+		JwtUserDto jwtUserDto = null;
+		if (loginProperties.isCacheEnable() && userDtoCache.containsKey(username)) {
+			jwtUserDto = userDtoCache.get(username);
+			// 检查dataScope是否修改
+			List<Long> dataScopes = jwtUserDto.getDataScopes();
+			dataScopes.clear();
+			dataScopes.addAll(dataService.getDeptIds(jwtUserDto.getUser()));
+			searchDb = false;
+		}
+		if (searchDb) {
+			UserDto user;
+			try {
+				user = userService.findByName(username);
+			} catch (EntityNotFoundException e) {
+				// SpringSecurity会自动转换UsernameNotFoundException为BadCredentialsException
+				throw new UsernameNotFoundException("", e);
+			}
+			if (user == null) {
+				throw new UsernameNotFoundException("");
+			} else {
+				if (!user.getEnabled()) {
+					throw new BadRequestException("账号未激活！");
+				}
+				jwtUserDto = new JwtUserDto(
+						user,
+						dataService.getDeptIds(user),
+						roleService.mapToGrantedAuthorities(user)
+				);
+				userDtoCache.put(username, jwtUserDto);
+			}
+		}
+		return jwtUserDto;
+	}
 }

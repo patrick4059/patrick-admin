@@ -11,7 +11,10 @@ import com.pat.jp.common.utils.StringUtils;
 import com.pat.jp.system.modules.security.config.bean.LoginCodeEnum;
 import com.pat.jp.system.modules.security.config.bean.LoginProperties;
 import com.pat.jp.system.modules.security.config.bean.SecurityProperties;
+import com.pat.jp.system.modules.security.security.TokenProvider;
+import com.pat.jp.system.modules.security.service.OnlineUserService;
 import com.pat.jp.system.modules.security.service.dto.AuthUserDto;
+import com.pat.jp.system.modules.security.service.dto.JwtUserDto;
 import com.wf.captcha.base.Captcha;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -47,6 +50,9 @@ public class AuthorizationController {
     private final RedisUtil redisUtils;
     private final SecurityProperties properties;
     private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    private final TokenProvider tokenProvider;
+    private final OnlineUserService onlineUserService;
+
     @Resource
     private LoginProperties loginProperties;
 
@@ -69,14 +75,19 @@ public class AuthorizationController {
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(authUser.getUsername(), password);
         Authentication authentication = authenticationManagerBuilder.getObject().authenticate(usernamePasswordAuthenticationToken);
         SecurityContextHolder.getContext().setAuthentication(authentication);
-
-
-
-
+        String token = tokenProvider.createToken(authentication);
+        final JwtUserDto jwtUserDto = (JwtUserDto) authentication.getPrincipal();
+        // 保存在线信息
+        onlineUserService.save(jwtUserDto, token, request);
+        // 返回 token 与 用户信息
         Map<String, Object> authInfo = new HashMap<String, Object>(2) {{
-            put("token", "12345");
-            put("user", "88888");
+            put("token", properties.getTokenStartWith() + token);
+            put("user", jwtUserDto);
         }};
+        if (loginProperties.isSingleLogin()) {
+            //踢掉之前已经登录的token
+            onlineUserService.checkLoginOnUser(authUser.getUsername(), token);
+        }
         return ResponseEntity.ok(authInfo);
     }
 

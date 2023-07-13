@@ -1,11 +1,119 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper
-        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+		PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+		"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.pat.jp.system.modules.system.mapper.UserMapper">
-
-    <select id="findByUsername" parameterType="java.lang.String" resultType="com.pat.jp.system.modules.system.domain.User">
-        SELECT * FROM sys_user WHERE username = #{username}
-    </select>
+	
+	<select id="findByUsername" parameterType="java.lang.String" resultMap="UserMap">
+		SELECT u.user_id        as u_user_id,
+		       u.dept_id        as u_dept_id,
+		       u.username       as u_username,
+		       u.nick_name      as u_nick_name,
+		       u.email          as u_email,
+		       u.phone          as u_phone,
+		       u.gender         as u_gender,
+		       u.avatar_name    as u_avatar_name,
+		       u.avatar_path    as u_avatar_path,
+		       u.password       as u_password,
+		       u.is_admin       as u_is_admin,
+		       u.enabled        as u_enabled,
+		       u.create_by      as u_create_by,
+		       u.update_by      as u_update_by,
+		       u.pwd_reset_time as u_pwd_reset_time,
+		       u.create_time    as u_create_time,
+		       u.update_time    as u_update_time,
+		       r.role_id        as r_role_id,
+		       r.name           as r_name,
+		       r.level          as r_level,
+		       r.data_scope     as r_data_scope,
+		       r.description    as r_description,
+		       r.create_by      as r_create_by,
+		       r.update_by      as r_update_by,
+		       r.create_time    as r_create_time,
+		       r.update_time    as r_update_time,
+		       j.job_id         as j_job_id,
+		       j.name           as j_name,
+		       j.job_sort       as j_job_sort,
+		       j.enabled        as j_enabled,
+		       j.create_by        as j_create_by,
+		       j.update_by        as j_update_by,
+		       j.create_time        as j_create_time,
+		       j.update_time        as j_update_time,
+		       d.dept_id as d_dept_id,
+		       d.pid as d_pid,
+		       d.sub_count as d_sub_count,
+		       d.name as d_name,
+		       d.dept_sort as d_dept_sort,
+		       d.enabled as d_enabled,
+		       d.create_by as d_create_by,
+		       d.update_by as d_update_by,
+		       d.create_time as d_create_time,
+		       d.update_time as d_update_time
+		FROM sys_user u,
+		     sys_users_roles ur,
+		     sys_role r,
+		     sys_users_jobs uj,
+		     sys_job j,
+			sys_dept d
+		WHERE u.user_id = ur.user_id
+		  and ur.role_id = r.role_id
+		  and u.user_id = uj.user_id
+		  and uj.job_id = j.job_id
+		  and u.dept_id = d.dept_id
+		  and username = #{username}
+	</select>
+	
+	<resultMap id="UserMap" type="com.pat.jp.system.modules.system.domain.User">
+		<id column="u_user_id" property="id"/>
+		<result column="u_username" property="username"/>
+		<result column="u_nick_name" property="nickName"/>
+		<result column="u_email" property="email"/>
+		<result column="u_phone" property="phone"/>
+		<result column="u_gender" property="gender"/>
+		<result column="u_avatar_name" property="avatarName"/>
+		<result column="u_avatar_path" property="avatarPath"/>
+		<result column="u_password" property="password"/>
+		<result column="u_is_admin" property="isAdmin"/>
+		<result column="u_enabled" property="enabled"/>
+		<result column="u_enabled" property="enabled"/>
+		<result column="u_create_by" property="createBy"/>
+		<result column="u_update_by" property="updateBy"/>
+		<result column="u_pwd_reset_time" property="pwdResetTime"/>
+		<result column="u_create_time" property="createTime"/>
+		<result column="u_update_time" property="updateTime"/>
+		<association property="dept" javaType="Dept">
+			<id column="d_dept_id" property="id"/>
+			<result column="d_dept_sort" property="deptSort"/>
+			<result column="d_name" property="name"/>
+			<result column="d_enabled" property="enabled"/>
+			<result column="d_pid" property="pid"/>
+			<result column="d_sub_count" property="subCount"/>
+			<result column="d_create_by" property="createBy"/>
+			<result column="d_update_by" property="updateBy"/>
+			<result column="d_create_time" property="createTime"/>
+			<result column="d_update_time" property="updateTime"/>
+		</association>
+		<collection property="jobs" ofType="Job">
+			<id column="j_job_id" property="id"/>
+			<result column="j_name" property="name"/>
+			<result column="j_job_sort" property="jobSort"/>
+			<result column="j_enabled" property="enabled"/>
+			<result column="j_create_by" property="createBy"/>
+			<result column="j_update_by" property="updateBy"/>
+			<result column="j_create_time" property="createTime"/>
+			<result column="j_update_time" property="updateTime"/>
+		</collection>
+		<collection property="roles" ofType="Role">
+			<id column="r_role_id" property="id"/>
+			<result column="r_name" property="name"/>
+			<result column="r_level" property="level"/>
+			<result column="r_data_scope" property="dataScope"/>
+			<result column="r_description" property="description"/>
+			<result column="r_create_by" property="createBy"/>
+			<result column="r_update_by" property="updateBy"/>
+			<result column="r_create_time" property="createTime"/>
+			<result column="r_update_time" property="updateTime"/>
+		</collection>
+	</resultMap>
 
 </mapper>
