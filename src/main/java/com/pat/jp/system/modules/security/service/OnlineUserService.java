@@ -78,6 +78,15 @@ public class OnlineUserService {
     }
 
     /**
+     * 查询用户
+     * @param key /
+     * @return /
+     */
+    public OnlineUserDto getOne(String key) {
+        return (OnlineUserDto)redisUtils.get(key);
+    }
+
+    /**
      * 查询全部数据，不分页
      * @param filter /
      * @return /

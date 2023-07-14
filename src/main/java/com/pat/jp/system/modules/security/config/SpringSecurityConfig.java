@@ -2,6 +2,11 @@ package com.pat.jp.system.modules.security.config;
 
 import com.pat.jp.common.annotation.AnonymousAccess;
 import com.pat.jp.common.utils.RequestMethodEnum;
+import com.pat.jp.system.modules.security.config.bean.SecurityProperties;
+import com.pat.jp.system.modules.security.security.TokenConfigurer;
+import com.pat.jp.system.modules.security.security.TokenProvider;
+import com.pat.jp.system.modules.security.service.OnlineUserService;
+import com.pat.jp.system.modules.security.service.UserCacheClean;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
@@ -35,6 +40,10 @@ import java.util.*;
 @EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true)
 public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
 	private final ApplicationContext applicationContext;
+	private final TokenProvider tokenProvider;
+	private final SecurityProperties properties;
+	private final OnlineUserService onlineUserService;
+	private final UserCacheClean userCacheClean;
 
 	@Bean
 	GrantedAuthorityDefaults grantedAuthorityDefaults() {
@@ -106,9 +115,26 @@ public class SpringSecurityConfig extends WebSecurityConfigurerAdapter {
 				// 所有类型的接口都放行
 				.antMatchers(anonymousUrls.get(RequestMethodEnum.ALL.getType()).toArray(new String[0])).permitAll()
 				// 所有请求都需要认证
-				.anyRequest().authenticated();
+				.anyRequest().authenticated()
+				// 所有携带token的也能够访问
+				.and().apply(securityConfigurerAdapter());
 	}
 
+	/**
+	 * @Description: 配置每个请求在进入security之前都进入自定义的过滤器，实现对token的验证
+	 *
+	 * @return
+	 */
+	private TokenConfigurer securityConfigurerAdapter() {
+		return new TokenConfigurer(tokenProvider, properties, onlineUserService, userCacheClean);
+	}
+
+	/**
+	 * @Description: 所有使用自定义注解的接口都放行
+	 *
+	 * @param handlerMethodMap
+	 * @return
+	 */
 	private Map<String, Set<String>> getAnonymousUrl(Map<RequestMappingInfo, HandlerMethod> handlerMethodMap) {
 		Map<String, Set<String>> anonymousUrls = new HashMap<>(6);
 		Set<String> get = new HashSet<>();

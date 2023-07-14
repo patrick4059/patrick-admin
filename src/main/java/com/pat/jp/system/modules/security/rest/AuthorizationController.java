@@ -7,6 +7,7 @@ import com.pat.jp.common.config.RsaProperties;
 import com.pat.jp.common.exception.BadRequestException;
 import com.pat.jp.common.utils.RedisUtil;
 import com.pat.jp.common.utils.RsaUtils;
+import com.pat.jp.common.utils.SecurityUtils;
 import com.pat.jp.common.utils.StringUtils;
 import com.pat.jp.system.modules.security.config.bean.LoginCodeEnum;
 import com.pat.jp.system.modules.security.config.bean.LoginProperties;
@@ -26,6 +27,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -89,6 +91,12 @@ public class AuthorizationController {
             onlineUserService.checkLoginOnUser(authUser.getUsername(), token);
         }
         return ResponseEntity.ok(authInfo);
+    }
+
+    @ApiOperation("获取用户信息")
+    @GetMapping(value = "/info")
+    public ResponseEntity<Object> getUserInfo() {
+        return ResponseEntity.ok(SecurityUtils.getCurrentUser());
     }
 
     @ApiOperation("获取验证码")
