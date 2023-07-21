@@ -15,6 +15,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.stereotype.Component;
 
+import javax.servlet.http.HttpServletRequest;
 import java.security.Key;
 import java.util.ArrayList;
 import java.util.Date;
@@ -106,6 +107,14 @@ public class TokenProvider implements InitializingBean {
             long renew = time + properties.getRenew();
             redisUtils.expire(properties.getOnlineKey() + token, renew, TimeUnit.MILLISECONDS);
         }
+    }
+
+    public String getToken(HttpServletRequest request) {
+        final String requestHeader = request.getHeader(properties.getHeader());
+        if (requestHeader != null && requestHeader.startsWith(properties.getTokenStartWith())) {
+            return requestHeader.substring(7);
+        }
+        return null;
     }
 
 }

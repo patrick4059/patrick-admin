@@ -1,6 +1,7 @@
 package com.pat.jp.system.modules.security.rest;
 
 import cn.hutool.core.util.IdUtil;
+import com.pat.jp.common.annotation.rest.AnonymousDeleteMapping;
 import com.pat.jp.common.annotation.rest.AnonymousGetMapping;
 import com.pat.jp.common.annotation.rest.AnonymousPostMapping;
 import com.pat.jp.common.config.RsaProperties;
@@ -21,6 +22,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
@@ -119,5 +121,12 @@ public class AuthorizationController {
         }};
 
         return ResponseEntity.ok(imgResult);
+    }
+
+    @ApiOperation("退出登录")
+    @AnonymousDeleteMapping(value = "/logout")
+    public ResponseEntity<Object> logout(HttpServletRequest request) {
+        onlineUserService.logout(tokenProvider.getToken(request));
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

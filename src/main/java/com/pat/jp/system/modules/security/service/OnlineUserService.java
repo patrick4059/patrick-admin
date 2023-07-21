@@ -117,4 +117,13 @@ public class OnlineUserService {
         key = properties.getOnlineKey() + key;
         redisUtils.del(key);
     }
+
+    /**
+     * 退出登录
+     * @param token /
+     */
+    public void logout(String token) {
+        String key = properties.getOnlineKey() + token;
+        redisUtils.del(key);
+    }
 }

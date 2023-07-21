@@ -44,24 +44,24 @@ public class StringUtils extends org.apache.commons.lang3.StringUtils {
 			.withField(UserAgent.AGENT_NAME_VERSION)
 			.build();
 
-	static {
-		SpringContextHolder.addCallBacks(() -> {
-			StringUtils.ipLocal = SpringContextHolder.getProperties("ip.local-parsing", false, Boolean.class);
-			if (ipLocal) {
-				/*
-				 * 此文件为独享 ，不必关闭
-				 */
-				String path = "ip2region/ip2region.db";
-				String name = "ip2region.db";
-				try {
-					config = new DbConfig();
-					file = FileUtil.inputStreamToFile(new ClassPathResource(path).getInputStream(), name);
-				} catch (Exception e) {
-					log.error(e.getMessage(), e);
-				}
-			}
-		});
-	}
+//	static {
+//		SpringContextHolder.addCallBacks(() -> {
+//			StringUtils.ipLocal = SpringContextHolder.getProperties("ip.local-parsing", false, Boolean.class);
+//			if (ipLocal) {
+//				/*
+//				 * 此文件为独享 ，不必关闭
+//				 */
+//				String path = "ip2region/ip2region.db";
+//				String name = "ip2region.db";
+//				try {
+//					config = new DbConfig();
+//					file = FileUtil.inputStreamToFile(new ClassPathResource(path).getInputStream(), name);
+//				} catch (Exception e) {
+//					log.error(e.getMessage(), e);
+//				}
+//			}
+//		});
+//	}
 
 	/**
 	 * 驼峰命名法工具
